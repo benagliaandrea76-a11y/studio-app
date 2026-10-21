@@ -1,0 +1,133 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f4f6f9;
+    color: #333;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.hidden { display: none !important; }
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+/* Form e Bottoni */
+input, select, button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+button {
+    background-color: #4A90E2;
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover { background-color: #357ABD; }
+
+/* Header e Navigazione */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+header button { width: auto; background-color: #e74c3c; }
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    background: #e0e0e0;
+    color: #333;
+    flex: 1;
+    white-space: nowrap;
+}
+
+.tab-btn.active {
+    background: #4A90E2;
+    color: white;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Dashboard & Stats */
+.big-stat {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #2c3e50;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.subject-badge {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 6px solid #4A90E2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.grade-sufficient { border-left-color: #2ecc71; }
+.grade-insufficient { border-left-color: #e74c3c; }
+
+/* Timer Pomodoro */
+.pomodoro-card { text-align: center; }
+.timer { font-size: 4rem; font-weight: bold; margin: 20px 0; color: #e74c3c; }
+.timer-controls { display: flex; gap: 10px; }
+.pomodoro-settings { display: flex; gap: 15px; margin-bottom: 15px; }
+
+/* Agenda Settimanale */
+.day-column {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.day-column h4 {
+    border-bottom: 2px solid #4A90E2;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.task-item {
+    background: #f8f9fa;
+    padding: 8px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.error { color: #e74c3c; margin-top: 10px; }
