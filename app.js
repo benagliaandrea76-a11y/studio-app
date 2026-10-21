@@ -1,13 +1,10 @@
-// --- CONFIGURAZIONE FIREBASE (GRATUITO) ---
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyBvBBQaHQEji3b-eHoOu2qaanG1W-66Asc",
-  authDomain: "my-shool-3bacc.firebaseapp.com",
-  projectId: "my-shool-3bacc",
-  storageBucket: "my-shool-3bacc.firebasestorage.app",
-  messagingSenderId: "680933420912",
-  appId: "1:680933420912:web:d080fc76fed5f7d08a29b5",
-  measurementId: "G-1Z8EKY1M31"
+    apiKey: "LA_TUA_API_KEY",
+    authDomain: "TUO-PROGETTO.firebaseapp.com",
+    projectId: "TUO-PROGETTO",
+    storageBucket: "TUO-PROGETTO.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -17,9 +14,8 @@ const db = firebase.firestore();
 let currentUser = null;
 let subjectsData = [];
 let tasksData = [];
-let currentSubjectId = null; // ID della cartella materia aperta al momento
+let activeBinderId = null;
 
-// --- AUTENTICAZIONE ---
 const authContainer = document.getElementById('auth-container');
 const mainApp = document.getElementById('main-app');
 const authForm = document.getElementById('auth-form');
@@ -52,18 +48,15 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-// --- CARICAMENTO DATI ---
 function loadUserData() {
     if (!currentUser) return;
 
     db.collection('users').doc(currentUser.uid).collection('subjects')
         .onSnapshot(snapshot => {
             subjectsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderSubjectFolders();
+            renderBindersGrid();
             renderDashboard();
-            if (currentSubjectId) {
-                renderSubjectDetailView(); // aggiorna la vista se hai una cartella aperta
-            }
+            if (activeBinderId) renderOpenBinderView();
         });
 
     db.collection('users').doc(currentUser.uid).collection('tasks')
@@ -73,7 +66,6 @@ function loadUserData() {
         });
 }
 
-// --- CREA MATERIA ---
 document.getElementById('add-subject-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('subject-name').value;
@@ -81,19 +73,18 @@ document.getElementById('add-subject-form').addEventListener('submit', (e) => {
     document.getElementById('subject-name').value = '';
 });
 
-// --- AGGIUNGI VOTO NELLA CARTELLA APERTA ---
 document.getElementById('add-grade-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    if (!currentSubjectId) return;
+    if (!activeBinderId) return;
 
     const category = document.getElementById('grade-category').value.trim() || 'Generale';
     const value = parseFloat(document.getElementById('grade-value').value);
     const weight = parseFloat(document.getElementById('grade-weight').value);
 
-    const subject = subjectsData.find(s => s.id === currentSubjectId);
-    if (subject) {
-        const updatedGrades = [...(subject.grades || []), { value, category, weight, id: Date.now().toString() }];
-        db.collection('users').doc(currentUser.uid).collection('subjects').doc(currentSubjectId).update({
+    const sub = subjectsData.find(s => s.id === activeBinderId);
+    if (sub) {
+        const updatedGrades = [...(sub.grades || []), { value, category, weight, id: Date.now().toString() }];
+        db.collection('users').doc(currentUser.uid).collection('subjects').doc(activeBinderId).update({
             grades: updatedGrades
         });
     }
@@ -111,122 +102,109 @@ function calculateSubjectAverage(grades) {
     return totalWeight === 0 ? 0 : (weightedSum / totalWeight).toFixed(2);
 }
 
-// --- RENDERIZZA LA GRIGLIA DELLE CARTELLE (MATERIE) ---
-function renderSubjectFolders() {
-    const grid = document.getElementById('subject-folders-grid');
+// Renderizza la griglia delle cartelle raccoglitore
+function renderBindersGrid() {
+    const grid = document.getElementById('binders-grid');
     grid.innerHTML = '';
 
     if (subjectsData.length === 0) {
-        grid.innerHTML = '<p style="color:var(--text-muted); grid-column: 1/-1;">Nessuna cartella materia creata. Creane una qui sopra!</p>';
+        grid.innerHTML = '<p style="color:var(--muted); grid-column: 1/-1;">Nessun raccoglitore creato. Creane uno qui sopra!</p>';
         return;
     }
 
     subjectsData.forEach(sub => {
         const avg = calculateSubjectAverage(sub.grades);
         const card = document.createElement('div');
-        card.className = 'folder-card';
-        card.onclick = () => openSubjectFolder(sub.id);
+        card.className = 'binder-folder-card';
+        card.onclick = () => openBinder(sub.id);
         card.innerHTML = `
-            <div class="folder-icon">📂</div>
+            <div class="binder-icon">📁</div>
             <h4>${sub.name}</h4>
-            <div class="folder-avg">Media: ${avg > 0 ? avg : 'N/D'}</div>
+            <div class="binder-card-avg">Media: ${avg > 0 ? avg : 'N/D'}</div>
         `;
         grid.appendChild(card);
     });
 }
 
-// --- APRI UNA SPECIFICA CARTELLA MATERIA ---
-function openSubjectFolder(subjectId) {
-    currentSubjectId = subjectId;
-    document.getElementById('folders-main-view').classList.add('hidden');
-    document.getElementById('subject-detail-view').classList.remove('hidden');
-    renderSubjectDetailView();
+function openBinder(subjectId) {
+    activeBinderId = subjectId;
+    document.getElementById('binders-main-view').classList.add('hidden');
+    document.getElementById('binder-open-view').classList.remove('hidden');
+    renderOpenBinderView();
 }
 
-// --- CHIUDI LA CARTELLA E TORNA ALLA LISTA ---
-function closeSubjectFolder() {
-    currentSubjectId = null;
-    document.getElementById('subject-detail-view').classList.add('hidden');
-    document.getElementById('folders-main-view').classList.remove('hidden');
+function closeBinder() {
+    activeBinderId = null;
+    document.getElementById('binder-open-view').classList.add('hidden');
+    document.getElementById('binders-main-view').classList.remove('hidden');
 }
 
-// --- RENDERIZZA IL CONTENUTO DELLA CARTELLA APERTA ---
-function renderSubjectDetailView() {
-    if (!currentSubjectId) return;
-    const sub = subjectsData.find(s => s.id === currentSubjectId);
+function renderOpenBinderView() {
+    if (!activeBinderId) return;
+    const sub = subjectsData.find(s => s.id === activeBinderId);
     if (!sub) return;
 
     const avg = calculateSubjectAverage(sub.grades);
-    document.getElementById('binder-title').textContent = `📂 ${sub.name}`;
-    document.getElementById('binder-average').textContent = `Media: ${avg > 0 ? avg : 'N/D'}`;
+    document.getElementById('open-binder-title').textContent = `📁 Raccoglitore: ${sub.name}`;
+    document.getElementById('open-binder-avg').textContent = `Media: ${avg > 0 ? avg : 'N/D'}`;
 
-    // Raggruppa i voti per categoria
+    // Raggruppa i voti per categoria dentro la materia
     const categories = {};
     (sub.grades || []).forEach(g => {
-        const catName = g.category || 'Generale';
-        if (!categories[catName]) categories[catName] = [];
-        categories[catName].push(g);
+        const cat = g.category || 'Generale';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(g);
     });
 
-    const catListContainer = document.getElementById('binder-categories-list');
-    catListContainer.innerHTML = '';
+    const container = document.getElementById('binder-categories-container');
+    container.innerHTML = '';
 
     if (Object.keys(categories).length === 0) {
-        catListContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Nessun voto in questa cartella.</p>';
+        container.innerHTML = '<p style="color:var(--muted); font-size:0.9rem;">Nessun voto inserito in questo raccoglitore.</p>';
         return;
     }
 
-    for (const [catName, gradesList] of Object.entries(categories)) {
+    for (const [catName, list] of Object.entries(categories)) {
         const box = document.createElement('div');
-        box.className = 'binder-category-box';
+        box.className = 'category-folder-box';
         box.innerHTML = `
-            <div class="binder-category-title">📁 ${catName}</div>
+            <div class="category-folder-title">📂 Categoria: ${catName}</div>
             <div>
-                ${gradesList.map(g => `
-                    <span class="grade-chip">
-                        <span class="grade-val">${g.value}</span>
-                        <span class="grade-w">(${g.weight}%)</span>
+                ${list.map(g => `
+                    <span class="grade-pill">
+                        <strong>${g.value}</strong>&nbsp;<span style="color:var(--muted);">(${g.weight}%)</span>
                     </span>
                 `).join('')}
             </div>
         `;
-        catListContainer.appendChild(box);
+        container.appendChild(box);
     }
 }
 
 function renderDashboard() {
-    const summaryList = document.getElementById('subjects-summary-list');
-    const overallAvgElem = document.getElementById('overall-average');
-    summaryList.innerHTML = '';
+    const list = document.getElementById('subjects-summary-list');
+    const heroAvg = document.getElementById('overall-average');
+    list.innerHTML = '';
 
-    let totalAvgSum = 0;
-    let count = 0;
-
+    let sum = 0, count = 0;
     subjectsData.forEach(sub => {
         const avg = parseFloat(calculateSubjectAverage(sub.grades));
-        if (avg > 0) {
-            totalAvgSum += avg;
-            count++;
-        }
+        if (avg > 0) { sum += avg; count++; }
 
-        const badge = document.createElement('div');
-        badge.className = `subject-badge ${avg >= 6 ? 'good' : (avg > 0 ? 'bad' : '')}`;
-        badge.innerHTML = `
-            <h4 style="margin-bottom: 5px; font-size:1.1rem;">${sub.name}</h4>
-            <p style="font-size: 1.5rem; font-weight: 800; margin-bottom: 5px; color:var(--accent);">${avg > 0 ? avg : 'N/D'}</p>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">${avg >= 6 ? '🟢 Ottimo lavoro!' : (avg > 0 ? '🔴 Attenzione, sotto il 6' : '⚪ Nessun voto')}</p>
+        const box = document.createElement('div');
+        box.className = 'subject-summary-box';
+        box.innerHTML = `
+            <h4 style="margin-bottom:4px;">${sub.name}</h4>
+            <p style="font-size:1.3rem; font-weight:800; color:#38bdf8;">${avg > 0 ? avg : 'N/D'}</p>
         `;
-        summaryList.appendChild(badge);
+        list.appendChild(box);
     });
 
-    overallAvgElem.textContent = count > 0 ? (totalAvgSum / count).toFixed(2) : '--';
+    heroAvg.textContent = count > 0 ? (sum / count).toFixed(2) : '--';
 }
 
-// --- TIMER POMODORO ---
-let timerInterval = null;
-let timeLeft = 25 * 60;
-let isStudying = true;
-
+// Timer Pomodoro
+let timerInterval = null, timeLeft = 25 * 60, isStudying = true;
 const timerDisplay = document.getElementById('timer-display');
 const timerStatus = document.getElementById('timer-status');
 
@@ -245,38 +223,21 @@ document.getElementById('btn-start-timer').addEventListener('click', () => {
         } else {
             clearInterval(timerInterval);
             timerInterval = null;
-            alert(isStudying ? "🎉 Sessione terminata! Ora prenditi una pausa." : "🔔 Pausa finita! Si torna a concentrarsi.");
+            alert(isStudying ? "Tempo di studio finito! Pausa." : "Pausa finita! Al lavoro.");
             isStudying = !isStudying;
-            const studyTime = parseInt(document.getElementById('study-time').value) || 25;
-            const restTime = parseInt(document.getElementById('rest-time').value) || 5;
-            timeLeft = (isStudying ? studyTime : restTime) * 60;
-            timerStatus.textContent = isStudying ? "Focus Studio 🧠" : "Pausa Relax ☕";
+            timeLeft = (isStudying ? parseInt(document.getElementById('study-time').value) : parseInt(document.getElementById('rest-time').value)) * 60;
             updateTimerDisplay();
         }
     }, 1000);
 });
+document.getElementById('btn-pause-timer').addEventListener('click', () => { clearInterval(timerInterval); timerInterval = null; });
+document.getElementById('btn-reset-timer').addEventListener('click', () => { clearInterval(timerInterval); timerInterval = null; timeLeft = parseInt(document.getElementById('study-time').value) * 60; updateTimerDisplay(); });
 
-document.getElementById('btn-pause-timer').addEventListener('click', () => {
-    clearInterval(timerInterval);
-    timerInterval = null;
-});
-
-document.getElementById('btn-reset-timer').addEventListener('click', () => {
-    clearInterval(timerInterval);
-    timerInterval = null;
-    isStudying = true;
-    const studyTime = parseInt(document.getElementById('study-time').value) || 25;
-    timeLeft = studyTime * 60;
-    timerStatus.textContent = "Pronto per lo sprint di studio? 🧠";
-    updateTimerDisplay();
-});
-
-// --- AGENDA SETTIMANALE ---
+// Agenda
 document.getElementById('add-task-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const desc = document.getElementById('task-desc').value;
     const day = document.getElementById('task-day').value;
-
     db.collection('users').doc(currentUser.uid).collection('tasks').add({ desc, day });
     document.getElementById('task-desc').value = '';
 });
@@ -285,24 +246,18 @@ function renderAgenda() {
     const days = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
     const container = document.getElementById('weekly-schedule');
     container.innerHTML = '';
-
     days.forEach(day => {
         const col = document.createElement('div');
         col.className = 'day-column';
-        const dayTasks = tasksData.filter(t => t.day === day);
-
-        col.innerHTML = `
-            <h4>${day}</h4>
-            ${dayTasks.map(t => `<div class="task-item">📌 ${t.desc}</div>`).join('') || '<p style="color:var(--text-muted); font-size:0.85rem;">Libero!</p>'}
-        `;
+        const tasks = tasksData.filter(t => t.day === day);
+        col.innerHTML = `<h4>${day}</h4>${tasks.map(t => `<div class="task-box">📌 ${t.desc}</div>`).join('') || '<p style="color:var(--muted); font-size:0.8rem;">Libero</p>'}`;
         container.appendChild(col);
     });
 }
 
-// --- TABS SWITCHER ---
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
+function switchTab(id) {
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
     event.currentTarget.classList.add('active');
 }

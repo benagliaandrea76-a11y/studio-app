@@ -3,147 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudioApp - Il tuo Diario Digitale</title>
+    <title>StudioApp - Raccoglitore Scolastico</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-    <!-- SCHERMATA LOGIN / REGISTRAZIONE -->
-    <div id="auth-container" class="auth-wrapper">
-        <div class="auth-card">
-            <div class="brand-badge">⚡ StudioApp v2.5</div>
-            <h1>Benvenuto! 👋</h1>
-            <p>Organizza materie, voti e studio in un unico posto con stile.</p>
+    <!-- LOGIN -->
+    <div id="auth-container" class="auth-screen">
+        <div class="auth-box">
+            <div class="app-logo-badge">🎒 StudioApp</div>
+            <h1>Il tuo Diario Cloud</h1>
+            <p>Accedi o registrati per gestire i tuoi raccoglitori scolastici gratis.</p>
             <form id="auth-form">
-                <div class="input-group">
-                    <input type="email" id="auth-email" placeholder="La tua email..." required>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="auth-password" placeholder="Password..." required>
-                </div>
-                <button type="submit" class="btn-primary glow" id="btn-login">Accedi 🚀</button>
-                <button type="button" class="btn-secondary" id="btn-signup">Crea un Account</button>
+                <input type="email" id="auth-email" placeholder="Email studente" required>
+                <input type="password" id="auth-password" placeholder="Password" required>
+                <button type="submit" class="btn-main" id="btn-login">Entra nel Diario</button>
+                <button type="button" class="btn-sub" id="btn-signup">Crea Nuovo Account</button>
             </form>
-            <p id="auth-error" class="error-msg"></p>
+            <p id="auth-error" class="error-text"></p>
         </div>
     </div>
 
     <!-- APP PRINCIPALE -->
     <div id="main-app" class="hidden">
-        <header class="app-header">
-            <div class="logo-area">
-                <span class="logo-icon">🚀</span>
-                <h2>StudioApp</h2>
-            </div>
-            <button id="btn-logout" class="btn-logout">Esci 🚪</button>
+        <header class="main-header">
+            <div class="brand">📚 <span>StudioApp</span></div>
+            <button id="btn-logout" class="logout-pill">Esci</button>
         </header>
 
-        <!-- NAVIGAZIONE TABS -->
-        <nav class="tabs-nav">
-            <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-            <button class="tab-btn" onclick="switchTab('voti')">📁 Cartelle Materie</button>
-            <button class="tab-btn" onclick="switchTab('pomodoro')">⏱️ Pomodoro</button>
-            <button class="tab-btn" onclick="switchTab('agenda')">📅 Agenda</button>
+        <nav class="navigation-bar">
+            <button class="nav-btn active" onclick="switchTab('dashboard')">📊 Panoramica</button>
+            <button class="nav-btn" onclick="switchTab('voti')">📁 Raccoglitore Voti</button>
+            <button class="nav-btn" onclick="switchTab('pomodoro')">⏳ Pomodoro</button>
+            <button class="nav-btn" onclick="switchTab('agenda')">📅 Agenda</button>
         </nav>
 
-        <main class="app-body">
-            <!-- TAB 1: DASHBOARD -->
-            <section id="dashboard" class="tab-content active">
-                <div class="welcome-banner">
-                    <h3>Ciao! Pronto a spaccare oggi? 🔥</h3>
-                    <p>Ecco una panoramica completa dei tuoi risultati scolastici.</p>
+        <main class="content-body">
+            <!-- DASHBOARD -->
+            <section id="dashboard" class="tab-pane active">
+                <div class="banner">
+                    <h2>Il tuo Andamento Scolastico</h2>
+                    <p>Tieni d'occhio le tue medie in tempo reale.</p>
                 </div>
-                
-                <div class="stats-card">
-                    <div class="stat-header">Media Generale Ponderata</div>
-                    <div id="overall-average" class="big-stat">--</div>
-                    <div class="stat-footer">Punti media totali</div>
+                <div class="average-card-hero">
+                    <span>Media Ponderata Globale</span>
+                    <div id="overall-average" class="hero-number">--</div>
                 </div>
-
-                <h3 class="section-title">Andamento Materie</h3>
-                <div id="subjects-summary-list" class="grid-container"></div>
+                <h3 class="pane-title">Riepilogo Materie</h3>
+                <div id="subjects-summary-list" class="grid-cards"></div>
             </section>
 
-            <!-- TAB 2: CARTELLE MATERIE E VOTI -->
-            <section id="voti" class="tab-content">
-                <!-- VISTA PRINCIPALE: GRIGLIA DELLE CARTELLE -->
-                <div id="folders-main-view">
-                    <div class="card" style="margin-bottom: 25px;">
-                        <h3>➕ Crea Nuova Cartella Materia</h3>
-                        <form id="add-subject-form" style="display: flex; gap: 10px;">
-                            <input type="text" id="subject-name" placeholder="Nome Materia (es. Chimica, Matematica...)" required style="margin:0;">
-                            <button type="submit" class="btn-primary" style="width: auto; padding: 0 25px;">Crea</button>
+            <!-- RACCOGLITORE VOTI E CARTELLE -->
+            <section id="voti" class="tab-pane">
+                <!-- VISTA PRINCIPALE: I RACCOGLITORI SCLASTICI -->
+                <div id="binders-main-view">
+                    <div class="action-card">
+                        <h3>➕ Aggiungi un Nuovo Raccoglitore (Materia)</h3>
+                        <form id="add-subject-form" class="inline-form">
+                            <input type="text" id="subject-name" placeholder="Nome Materia (es. Chimica, Matematica...)" required>
+                            <button type="submit" class="btn-main">Crea Raccoglitore</button>
                         </form>
                     </div>
 
-                    <h3 class="section-title">I tuoi Raccoglitori</h3>
-                    <div id="subject-folders-grid" class="folders-grid"></div>
+                    <h3 class="pane-title">I tuoi Raccoglitori di Materia</h3>
+                    <div id="binders-grid" class="binders-grid-container"></div>
                 </div>
 
-                <!-- VISTA DETTAGLIO CARTELLA MATERIA (Nascosta finché non clicchi una cartella) -->
-                <div id="subject-detail-view" class="hidden">
-                    <button type="button" class="btn-secondary" onclick="closeSubjectFolder()" style="width: auto; margin-bottom: 20px;">← Torna a tutte le cartelle</button>
+                <!-- VISTA INTERNA DELLA CARTELLA APERTA -->
+                <div id="binder-open-view" class="hidden">
+                    <button type="button" class="back-btn" onclick="closeBinder()">⬅️ Torna a tutti i Raccoglitori</button>
                     
-                    <div class="subject-binder-header">
-                        <h2 id="binder-title">Chimica</h2>
-                        <span id="binder-average" class="binder-avg-badge">Media: --</span>
+                    <div class="binder-open-header">
+                        <h2 id="open-binder-title">Chimica</h2>
+                        <span id="open-binder-avg" class="badge-avg">Media: --</span>
                     </div>
 
-                    <div class="forms-grid" style="margin-top: 20px;">
-                        <div class="card">
-                            <h3>📝 Aggiungi Voto in questa Cartella</h3>
+                    <div class="binder-split-layout">
+                        <div class="action-card">
+                            <h3>📝 Inserisci Voto in Categoria</h3>
                             <form id="add-grade-form">
-                                <input type="text" id="grade-category" placeholder="Categoria (es. Scritti, Orali, Test...)" required list="cat-suggestions">
-                                <datalist id="cat-suggestions">
+                                <input type="text" id="grade-category" placeholder="Categoria (es. Scritti, Orali, Test)" required list="cat-list">
+                                <datalist id="cat-list">
                                     <option value="Scritti">
                                     <option value="Orali">
-                                    <option value="Laboratorio">
+                                    <option value="Pratici / Laboratorio">
                                     <option value="Compiti a Casa">
                                 </datalist>
                                 <input type="number" id="grade-value" placeholder="Voto (es. 8.5)" step="0.1" min="1" max="10" required>
-                                <input type="number" id="grade-weight" placeholder="Peso % (default 100%)" min="1" max="200" value="100" required>
-                                <button type="submit" class="btn-primary">Salva Voto</button>
+                                <input type="number" id="grade-weight" placeholder="Peso % (es. 100)" min="1" max="200" value="100" required>
+                                <button type="submit" class="btn-main">Aggiungi Voto</button>
                             </form>
                         </div>
 
-                        <div class="card">
-                            <h3>📊 Suddivisione Categorie Voti</h3>
-                            <div id="binder-categories-list"></div>
+                        <div class="action-card">
+                            <h3>📂 Categorie di questa Materia</h3>
+                            <div id="binder-categories-container"></div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- TAB 3: TIMER POMODORO -->
-            <section id="pomodoro" class="tab-content">
-                <div class="card pomodoro-card">
-                    <h3>⏱️ Sessione Focus Pomodoro</h3>
-                    <p class="sub-text">Concentrati al massimo, poi prenditi una meritata pausa!</p>
-                    <div class="pomodoro-settings">
-                        <label>Studio (min): <input type="number" id="study-time" value="25" min="1"></label>
-                        <label>Pausa (min): <input type="number" id="rest-time" value="5" min="1"></label>
+            <!-- POMODORO -->
+            <section id="pomodoro" class="tab-pane">
+                <div class="action-card text-center">
+                    <h3>⏳ Timer Studio & Relax</h3>
+                    <div class="pomo-inputs">
+                        <label>Studio: <input type="number" id="study-time" value="25" min="1"></label>
+                        <label>Pausa: <input type="number" id="rest-time" value="5" min="1"></label>
                     </div>
-                    <div id="timer-display" class="timer">25:00</div>
-                    <div id="timer-status" class="timer-status-text">Pronto per lo sprint di studio? 🧠</div>
-                    <div class="timer-controls">
-                        <button id="btn-start-timer" class="btn-primary">Avvia 🚀</button>
-                        <button id="btn-pause-timer" class="btn-secondary">Pausa ⏸️</button>
-                        <button id="btn-reset-timer" class="btn-danger">Reset 🔄</button>
+                    <div id="timer-display" class="timer-clock">25:00</div>
+                    <div id="timer-status" class="timer-label">Pronto per concentrarti?</div>
+                    <div class="pomo-buttons">
+                        <button id="btn-start-timer" class="btn-main">Avvia</button>
+                        <button id="btn-pause-timer" class="btn-sub">Pausa</button>
+                        <button id="btn-reset-timer" class="btn-danger">Reset</button>
                     </div>
                 </div>
             </section>
 
-            <!-- TAB 4: AGENDA -->
-            <section id="agenda" class="tab-content">
-                <div class="card">
+            <!-- AGENDA -->
+            <section id="agenda" class="tab-pane">
+                <div class="action-card">
                     <h3>📅 Nuovo Promemoria</h3>
-                    <form id="add-task-form">
-                        <input type="text" id="task-desc" placeholder="Cosa devi fare? (es. Ripasso cap. 4)" required>
+                    <form id="add-task-form" class="inline-form">
+                        <input type="text" id="task-desc" placeholder="Cosa devi studiare o fare?" required>
                         <select id="task-day" required>
                             <option value="Lunedì">Lunedì</option>
                             <option value="Martedì">Martedì</option>
@@ -153,12 +140,11 @@
                             <option value="Sabato">Sabato</option>
                             <option value="Domenica">Domenica</option>
                         </select>
-                        <button type="submit" class="btn-primary">Aggiungi all'Agenda</button>
+                        <button type="submit" class="btn-main">Aggiungi</button>
                     </form>
                 </div>
-
-                <h3 class="section-title">La tua Settimana</h3>
-                <div id="weekly-schedule" class="grid-container-schedule"></div>
+                <h3 class="pane-title">Impegni della Settimana</h3>
+                <div id="weekly-schedule" class="schedule-grid"></div>
             </section>
         </main>
     </div>
